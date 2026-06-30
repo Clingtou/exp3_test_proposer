@@ -980,7 +980,7 @@ function chartDecisionTrial() {
           </div>
         </div>
       </div>
-    `, "Decision Stage", "stimulus-shell exp3-wide-shell");
+    `, "Decision Stage", "stimulus-shell exp3-wide-shell exp3-chart-shell");
   };
 
   return {
