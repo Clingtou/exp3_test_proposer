@@ -395,7 +395,7 @@ function roseChartHtml(condition, options = {}) {
   const cx = 390;
   const baseCy = compact ? 250 : 382;
   const baseRadius = compact ? 108 : 124;
-  const horizontalGap = compact ? 72 : 70;
+  const horizontalGap = compact ? 126 : 70;
   const lineGap = 40;
   const amountTextHeight = 25;
   const viewBoxHeight = compact ? 500 : 700;
@@ -814,8 +814,7 @@ function stageMessageTrial() {
     stimulus: `
       <div class="stage-message">
         <h2>Decision Stage</h2>
-        <p>You will now make your two actual decisions as the proposer.</p>
-        <p>First choose one split to send to the receiver. Then choose one chart to present that split.</p>
+        <p>You will now make your actual decisions as the proposer. Please consider carefully.</p>
         <button id="stage-continue-button" class="primary-btn" type="button">Continue</button>
       </div>
     `,
@@ -829,6 +828,13 @@ function stageMessageTrial() {
   };
 }
 
+function splitChoiceButtonContent(label, selected = false) {
+  const marker = selected
+    ? `<span class="decision-check" aria-hidden="true">&#10003;</span>`
+    : `<span class="split-choice-dot" aria-hidden="true"></span>`;
+  return `${marker}<span class="split-choice-label">${label}</span>`;
+}
+
 function splitDecisionTrial() {
   return {
     type: jsPsychHtmlKeyboardResponse,
@@ -836,14 +842,14 @@ function splitDecisionTrial() {
       <div class="stimulus-content exp3-split-content">
         <div class="offer-title">Decision : Choose one proposal.</div>
         <div class="offer-subtitle">
-          This is your <span class="doc-red">actual decision</span> for this proposal. Please choose one proposal to send to the receiver.
+          This is your <span class="doc-red">actual decision</span> for this proposal. Please choose one proposal from the four options to send to the receiver.
           You can submit this decision <span class="doc-red">only once</span>. Please consider the proposal carefully before confirming your choice.
         </div>
         <div class="split-option-list">
           ${randomizedSplitOptions.map(function (option) {
             return `
               <button class="decision-button split-decision-button" type="button" data-split-id="${option.split_id}" data-label="${option.label}">
-                ${option.label}
+                ${splitChoiceButtonContent(option.label)}
               </button>
             `;
           }).join("")}
@@ -888,10 +894,10 @@ function splitDecisionTrial() {
           choiceHistory.push({ split_id: splitId, rt: clickRt });
           buttons.forEach(function (b) {
             b.classList.remove("selected");
-            b.innerHTML = b.getAttribute("data-label");
+            b.innerHTML = splitChoiceButtonContent(b.getAttribute("data-label"));
           });
           button.classList.add("selected");
-          button.innerHTML = `<span class="decision-check" aria-hidden="true">&#10003;</span>${label}`;
+          button.innerHTML = splitChoiceButtonContent(label, true);
           selectedText.innerHTML = `You selected: <strong>${label}</strong>.`;
           confirmPanel.hidden = false;
           confirmPanel.scrollIntoView({ block: "nearest", behavior: "smooth" });
@@ -941,10 +947,10 @@ function chartDecisionTrial() {
     const chartLetters = ["A", "B", "C"];
     return shellHtml(`
       <div class="stimulus-content exp3-chart-content">
-        <div class="offer-title">Decision : Choose one chart.</div>
+        <div class="offer-title">Decision : Choose one way of presenting the allocation.</div>
         <div class="offer-subtitle">
-          Now please <span class="doc-red">choose one chart to present your proposal to the receiver</span>.
-          The receiver will see the selected chart with the numerical amounts shown.
+          Now please <span class="doc-red">choose one way of presenting the allocation to the receiver</span>.
+          The receiver will see the selected presentation with the numerical amounts shown.
           You can submit this decision <span class="doc-red">only once</span>.
         </div>
         <div class="selected-split-summary">Selected proposal: ${split.label}</div>
@@ -956,7 +962,7 @@ function chartDecisionTrial() {
             return `
               <button class="chart-choice-button" type="button" data-chart-label="${chartLabel}" data-chart-type="${chartTypeId}">
                 <div class="chart-option-visual">${roseChartHtml(displayCondition, { compact: true })}</div>
-                <div class="chart-option-label">Chart ${chartLabel}</div>
+                <div class="chart-option-label">Option ${chartLabel}</div>
               </button>
             `;
           }).join("")}
@@ -1017,7 +1023,7 @@ function chartDecisionTrial() {
           choiceHistory.push({ chart_label: chartLabel, chart_type: chartType, rt: clickRt });
           buttons.forEach(b => b.classList.remove("selected"));
           button.classList.add("selected");
-          selectedText.innerHTML = `You selected: <strong>Chart ${chartLabel}</strong>.`;
+          selectedText.innerHTML = `You selected: <strong>Option ${chartLabel}</strong>.`;
           confirmPanel.hidden = false;
           confirmPanel.scrollIntoView({ block: "nearest", behavior: "smooth" });
         });

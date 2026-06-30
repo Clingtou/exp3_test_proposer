@@ -785,7 +785,7 @@ li {
 
 .study-shell.exp3-wide-shell {
   width: min(1500px, calc(100vw - 24px));
-  margin: 10px auto;
+  margin: 18px auto;
 }
 
 .study-shell.exp3-wide-shell .qualtrics-card {
@@ -812,12 +812,29 @@ li {
 }
 
 .split-option-list .decision-button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   width: min(620px, 100%);
   min-height: clamp(72px, 9vh, 96px);
   padding: 14px 22px;
   font-size: 22px;
   line-height: 1.25;
   text-align: left;
+}
+
+.split-choice-dot {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #6b7280;
+  border-radius: 50%;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.split-choice-label {
+  min-width: 0;
 }
 
 .selected-split-summary {
@@ -917,14 +934,14 @@ li {
 }
 
 .exp3-chart-content .offer-title {
-  font-size: 28px;
-  margin-bottom: 4px;
+  font-size: 32px;
+  margin-bottom: 8px;
   white-space: normal;
 }
 
 .exp3-chart-content .offer-subtitle {
-  font-size: 20px;
-  line-height: 1.42;
+  font-size: 22px;
+  line-height: 1.45;
 }
 
 .exp3-chart-content .decision-confirm-panel {
