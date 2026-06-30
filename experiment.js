@@ -392,10 +392,11 @@ function calloutTextHtml(x, y, label, amount, anchor = "middle") {
 
 function roseChartHtml(condition, options = {}) {
   const compact = options.compact === true;
-  const cx = 390;
+  const viewBoxWidth = compact ? 900 : 780;
+  const cx = viewBoxWidth / 2;
   const baseCy = compact ? 250 : 382;
-  const baseRadius = compact ? 108 : 124;
-  const horizontalGap = compact ? 126 : 70;
+  const baseRadius = compact ? 118 : 124;
+  const calloutCenterGap = compact ? 170 : 70;
   const lineGap = 40;
   const amountTextHeight = 25;
   const viewBoxHeight = compact ? 500 : 700;
@@ -429,13 +430,17 @@ function roseChartHtml(condition, options = {}) {
     ? { label: "Receiver", amount: condition.receiver }
     : { label: "Proposer", amount: condition.proposer };
   const sideY = cy - 24;
+  const chartLeftEdgeX = cx + shapeBounds.minX;
+  const chartRightEdgeX = cx + shapeBounds.maxX;
+  const leftCalloutCenterX = chartLeftEdgeX - calloutCenterGap;
+  const rightCalloutCenterX = chartRightEdgeX + calloutCenterGap;
   const labelHtml = `
-    ${calloutTextHtml(cx + shapeBounds.minX - horizontalGap, sideY, left.label, left.amount)}
-    ${calloutTextHtml(cx + shapeBounds.maxX + horizontalGap, sideY, right.label, right.amount)}
+    ${calloutTextHtml(leftCalloutCenterX, sideY, left.label, left.amount)}
+    ${calloutTextHtml(rightCalloutCenterX, sideY, right.label, right.amount)}
   `;
 
   return `
-    <svg class="rose-chart" viewBox="0 0 780 ${viewBoxHeight}" role="img" aria-label="Pie chart showing the proposed allocation">
+    <svg class="rose-chart" viewBox="0 0 ${viewBoxWidth} ${viewBoxHeight}" role="img" aria-label="Pie chart showing the proposed allocation">
       <path class="sector" d="${sectorPath(cx, cy, receiverRadius, receiverStart, receiverEnd)}" fill="${condition.receiver_color}"></path>
       <path class="sector" d="${sectorPath(cx, cy, proposerRadius, proposerStart, proposerEnd)}" fill="${condition.proposer_color}"></path>
       ${labelHtml}
