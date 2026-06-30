@@ -792,17 +792,28 @@ li {
   padding: 22px 30px 20px 30px;
 }
 
+.exp3-split-content {
+  min-height: max(540px, calc(100vh - 210px));
+}
+
+.exp3-split-content .offer-title,
+.exp3-split-content .offer-subtitle {
+  align-self: stretch;
+}
+
 .split-option-list {
   display: grid;
-  gap: 12px;
+  gap: clamp(18px, 4vh, 38px);
   justify-items: center;
   width: 100%;
-  margin: 28px 0 0 0;
+  flex: 1 1 auto;
+  align-content: space-evenly;
+  margin: clamp(28px, 5vh, 54px) 0 0 0;
 }
 
 .split-option-list .decision-button {
   width: min(620px, 100%);
-  min-height: 62px;
+  min-height: clamp(72px, 9vh, 96px);
   padding: 14px 22px;
   font-size: 22px;
   line-height: 1.25;
@@ -830,14 +841,14 @@ li {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  justify-content: space-between;
+  justify-content: flex-start;
   border: 2px solid #aab4c1;
   border-radius: 6px;
   background: #fff;
-  padding: 8px 8px 10px 8px;
+  padding: 8px 8px 16px 8px;
   color: var(--text);
   cursor: pointer;
-  min-height: 380px;
+  min-height: 400px;
 }
 
 .chart-choice-button:hover {
@@ -856,12 +867,13 @@ li {
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 318px;
+  min-height: 300px;
+  margin-bottom: 18px;
 }
 
 .chart-option-visual .rose-chart {
   width: 100%;
-  height: 318px;
+  height: 300px;
   min-width: 0;
   min-height: 0;
 }
@@ -879,6 +891,7 @@ li {
   align-items: center;
   justify-content: center;
   min-height: 34px;
+  margin-top: 10px;
   font-size: 21px;
   font-weight: 700;
   color: var(--text);
@@ -937,6 +950,19 @@ li {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+.single-choice-option input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--blue);
+}
+
+.single-choice-option:has(input[type="checkbox"]:checked) {
+  border-color: var(--blue-dark);
+  background: var(--blue-light);
+  box-shadow: 0 0 0 2px rgba(47, 128, 237, 0.12);
+}
+
 @media (max-width: 980px) {
   .chart-choice-grid {
     gap: 8px;
@@ -944,7 +970,7 @@ li {
 
   .chart-choice-button {
     padding: 6px;
-    min-height: 310px;
+    min-height: 330px;
   }
 
   .chart-option-visual {

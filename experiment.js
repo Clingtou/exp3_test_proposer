@@ -596,95 +596,95 @@ function humanVerificationTrial(imagePath) {
   };
 }
 
+function instructionFlowImagePath(conditionInfo) {
+  return conditionInfo.color_balance === "proposer_blue_receiver_orange"
+    ? "instruction-flow_proposerblue.png"
+    : "instruction-flow_proposerorange.png";
+}
+
 function instructionTrial() {
-  return {
-    type: jsPsychHtmlButtonResponse,
-    stimulus: shellHtml(`
+  const renderHtml = function () {
+    const conditionInfo = getAssignedConditionInfo();
+    const imagePath = instructionFlowImagePath(conditionInfo);
+    return shellHtml(`
       <h2 class="intro-title">Instructions</h2>
       <p>In this study, you will complete a short economic decision-making task. Please read the instructions carefully. Your decisions may affect bonus payments for you and another participant. You will receive a base payment of <span class="doc-red">$${BASE_PAYMENT_USD.toFixed(2)}</span> for completing the study carefully.</p>
       <p>There are two roles in this task: <span class="doc-red">proposer</span> and <span class="doc-red">receiver</span>. The proposer decides how to divide <span class="doc-red">100 cents</span> between themself and a receiver. The receiver then decides whether to accept or reject the proposal.</p>
+      <div class="instruction-flow-wrap">
+        <img class="instruction-flow-image" src="${imagePath}" alt="Diagram showing the proposer decision, receiver decision, and possible outcomes.">
+      </div>
       <p>You have been assigned to the role of <span class="doc-red">PROPOSER</span>.</p>
-      <p>You will make two decisions. First, you will choose one allocation of 100 cents to send to the receiver. Second, you will choose one chart to present your proposal to the receiver. The receiver will see the selected chart with the numerical amounts shown.</p>
+      <p>You will make a decision by choosing one allocation of <span class="doc-red">100 cents</span> to send to the receiver.</p>
       <ul>
         <li>If the receiver <span class="doc-red">accepts</span> your proposal, you and the receiver receive the proposed amounts.</li>
         <li>If the receiver <span class="doc-red">rejects</span> your proposal, both you and the receiver receive 0 cents from the proposal.</li>
       </ul>
       <p>You and the receiver will not know any personal information about each other.</p>
-      <p>After data collection is complete, <span class="doc-red">${BONUS_DRAW_PERCENT}%</span> of proposers will be randomly selected for real bonus payment. If you are selected, your actual proposal and selected chart may be paired with a receiver's response, and the outcome will determine the bonus for you and the receiver. The bonus will be paid as a Prolific bonus. Bonus payments will be processed within two months after data collection is complete.</p>
-      <p>Therefore, please consider your choices carefully, because your decisions may affect a real bonus for both you and another participant.</p>
-    `, STUDY_TITLE, "instruction-shell"),
+      <p>After data collection is complete, <span class="doc-red">${BONUS_DRAW_PERCENT}%</span> of receivers will be randomly selected for real bonus payment. If a receiver is selected, your decision may be paired with that receiver's response, and the outcome will determine the bonus for you and the receiver. The bonus will be paid as a Prolific bonus. Bonus payments will be processed within two months after data collection is complete.</p>
+      <p>Therefore, please consider your choice carefully, because your decision may affect a real bonus for both you and another participant.</p>
+    `, STUDY_TITLE, "instruction-shell");
+  };
+
+  return {
+    type: jsPsychHtmlButtonResponse,
+    stimulus: renderHtml,
     choices: ["Continue"],
     data: { phase: "instructions" }
   };
 }
 
-function buildComprehensionQuestions(conditionInfo) {
+function buildComprehensionQuestions() {
   return [
     {
       name: "role",
-      text: "1. Which statement is correct about your role in this study?",
+      text: "1. Which statement is correct about this study?",
       options: [
-        { value: "receiver_accept_reject", label: "You will be the receiver and decide whether to accept or reject four proposals." },
-        { value: "proposer_split_chart", label: "You will be the proposer, choose one split of 100 cents, and choose one chart to present it to the receiver." },
-        { value: "evaluation_only", label: "You will only answer evaluation questions; your decisions will not be recorded." },
-        { value: "receiver_set_chart", label: "You will be the receiver and choose which chart the proposer sees." }
+        { value: "receiver_real_proposal", label: "You will be the receiver and decide whether to accept or reject a real proposal." },
+        { value: "evaluation_only", label: "You will only answer evaluation questions; your decisions will not affect payment." },
+        { value: "proposer_real_split", label: "You will be the proposer, choose one split of 100 cents, and your decision may be used to determine bonus payments for you and another participant." },
+        { value: "proposer_not_real", label: "You will be the proposer, but your choice is not real and will not be recorded." }
       ],
-      correct: "proposer_split_chart"
+      correct: "proposer_real_split"
+    },
+    {
+      name: "accept",
+      text: "2. Suppose this proposal is selected for bonus payment: you give yourself 50 cents and gives the receiver 50 cents. What happens if the receiver accepts it?",
+      options: [
+        { value: "shown_amounts", label: "You receive 50 cents and the receiver receives 50 cents." },
+        { value: "both_zero", label: "Both participants receive 0 cents." },
+        { value: "you_all", label: "You receive all 100 cents." }
+      ],
+      correct: "shown_amounts"
+    },
+    {
+      name: "reject",
+      text: "3. Suppose this proposal is selected for bonus payment: you give yourself 50 cents and gives the receiver 50 cents. What happens if the receiver rejects it?",
+      options: [
+        { value: "shown_amounts", label: "You receive 50 cents and the receiver receives 50 cents." },
+        { value: "both_zero", label: "Both participants receive 0 cents." },
+        { value: "receiver_all", label: "The receiver receives all 100 cents." }
+      ],
+      correct: "both_zero"
+    },
+    {
+      name: "bonus",
+      text: "4. How are bonus outcomes determined?",
+      options: [
+        { value: "ten_percent_receivers_real", label: "10% of receivers are randomly selected. If selected, you and the receiver will both be paid according to the outcome of your decisions." },
+        { value: "everyone_bonus", label: "All the participants involving both receivers and proposer will be paid bonus." },
+        { value: "hypothetical_only", label: "The game is hypothetical and no bonuses can be paid." }
+      ],
+      correct: "ten_percent_receivers_real"
     },
     {
       name: "total",
-      text: "2. How much money is divided in the proposal?",
+      text: "5. How much money is divided in the proposal?",
       options: [
         { value: "100_cents", label: "100 cents" },
         { value: "10_dollars", label: "10 dollars" },
         { value: "unknown", label: "The amount is not specified" }
       ],
       correct: "100_cents"
-    },
-    {
-      name: "accept",
-      text: "3. Suppose your selected proposal gives you 60 cents and gives the receiver 40 cents. What happens if the receiver accepts it?",
-      exampleHtml: `
-        <div class="comprehension-example">
-          <div class="example-chart">${exampleRoseChartHtml(conditionInfo, 60, 40)}</div>
-        </div>
-      `,
-      options: [
-        { value: "shown_amounts", label: "You receive the proposed amount and the receiver receives the proposed amount." },
-        { value: "both_zero", label: "Both participants receive 0 cents from the proposal." },
-        { value: "receiver_all", label: "The receiver receives all 100 cents." }
-      ],
-      correct: "shown_amounts"
-    },
-    {
-      name: "reject",
-      text: "4. Suppose your selected proposal gives you 60 cents and gives the receiver 40 cents. What happens if the receiver rejects it?",
-      options: [
-        { value: "shown_amounts", label: "You receive 60 cents and the receiver receives 40 cents." },
-        { value: "both_zero", label: "Both participants receive 0 cents from the proposal." },
-        { value: "proposer_all", label: "You receive all 100 cents." }
-      ],
-      correct: "both_zero"
-    },
-    {
-      name: "decisions",
-      text: "5. Which statement is correct about your two decisions?",
-      options: [
-        { value: "once_each", label: "You will choose one split and one chart, and each decision can be submitted only once." },
-        { value: "many_changes_after_submit", label: "You can submit a split, see the receiver's response, and then change your split." },
-        { value: "chart_no_numbers", label: "The receiver will see only a chart with no numerical amounts shown." }
-      ],
-      correct: "once_each"
-    },
-    {
-      name: "bonus",
-      text: "6. How are bonus outcomes determined?",
-      options: [
-        { value: "selected_proposers_real", label: "Some proposers are randomly selected. If selected, their actual proposal may be paired with a receiver's response to determine bonus outcomes." },
-        { value: "everyone_all_options", label: "Every proposer receives payment for every possible split option." },
-        { value: "hypothetical_only", label: "The task is hypothetical and no bonuses can be paid." }
-      ],
-      correct: "selected_proposers_real"
     }
   ];
 }
@@ -692,7 +692,7 @@ function buildComprehensionQuestions(conditionInfo) {
 function comprehensionTrial() {
   let questions = [];
   const renderHtml = function () {
-    questions = buildComprehensionQuestions(getAssignedConditionInfo());
+    questions = buildComprehensionQuestions();
     return shellHtml(`
       <form id="comprehension-form" novalidate>
         <h2 class="intro-title">Comprehension Check</h2>
@@ -834,7 +834,7 @@ function splitDecisionTrial() {
     type: jsPsychHtmlKeyboardResponse,
     stimulus: shellHtml(`
       <div class="stimulus-content exp3-split-content">
-        <div class="offer-title">Decision 1 of 2: Choose one proposal.</div>
+        <div class="offer-title">Decision : Choose one proposal.</div>
         <div class="offer-subtitle">
           This is your <span class="doc-red">actual decision</span> for this proposal. Please choose one proposal to send to the receiver.
           You can submit this decision <span class="doc-red">only once</span>. Please consider the proposal carefully before confirming your choice.
@@ -941,7 +941,7 @@ function chartDecisionTrial() {
     const chartLetters = ["A", "B", "C"];
     return shellHtml(`
       <div class="stimulus-content exp3-chart-content">
-        <div class="offer-title">Decision 2 of 2: Choose one chart.</div>
+        <div class="offer-title">Decision : Choose one chart.</div>
         <div class="offer-subtitle">
           Now please <span class="doc-red">choose one chart to present your proposal to the receiver</span>.
           The receiver will see the selected chart with the numerical amounts shown.
@@ -1144,13 +1144,13 @@ function postReasonTrial() {
       <form id="post-reason-form" novalidate>
         <h2 class="intro-title">Follow-up Questions</h2>
         <div class="form-question">
-          <div class="question-text">What was your main reason for choosing this chart?</div>
-          <div class="single-choice-list" role="radiogroup" aria-label="Chart choice reason">
+          <div class="question-text">What was your main reason for choosing this chart? (Select all that apply.)</div>
+          <div class="single-choice-list" role="group" aria-label="Chart choice reasons">
             ${options.map(function (option) {
               if (option.value === "other") {
                 return `
                   <label class="single-choice-option">
-                    <input type="radio" name="chart_choice_reason" value="other">
+                    <input type="checkbox" name="chart_choice_reason" value="other">
                     <span class="reason-other-row">
                       <span>${option.label}</span>
                       <input id="chart-reason-other" class="reason-other-input" name="chart_choice_reason_other" type="text" autocomplete="off">
@@ -1160,7 +1160,7 @@ function postReasonTrial() {
               }
               return `
                 <label class="single-choice-option">
-                  <input type="radio" name="chart_choice_reason" value="${option.value}">
+                  <input type="checkbox" name="chart_choice_reason" value="${option.value}">
                   <span>${option.label}</span>
                 </label>
               `;
@@ -1168,7 +1168,7 @@ function postReasonTrial() {
           </div>
         </div>
         <button type="submit" class="form-submit">Continue</button>
-        <div id="post-required" class="required-note">Please choose one option before continuing.</div>
+        <div id="post-required" class="required-note">Please choose at least one option before continuing.</div>
       </form>
     `),
     choices: "NO_KEYS",
@@ -1185,14 +1185,14 @@ function postReasonTrial() {
       const questionRt = {};
       Array.from(form.querySelectorAll('input[name="chart_choice_reason"]')).forEach(function (input) {
         input.addEventListener("change", function () {
-          questionRt.chart_choice_reason = Math.round(performance.now() - pageStart);
+          questionRt.chart_choice_reasons = Math.round(performance.now() - pageStart);
         });
       });
       otherInput.addEventListener("focus", function () {
-        const otherRadio = form.querySelector('input[name="chart_choice_reason"][value="other"]');
-        if (otherRadio) {
-          otherRadio.checked = true;
-          questionRt.chart_choice_reason = Math.round(performance.now() - pageStart);
+        const otherCheckbox = form.querySelector('input[name="chart_choice_reason"][value="other"]');
+        if (otherCheckbox) {
+          otherCheckbox.checked = true;
+          questionRt.chart_choice_reasons = Math.round(performance.now() - pageStart);
         }
       });
       otherInput.addEventListener("input", function () {
@@ -1201,14 +1201,14 @@ function postReasonTrial() {
       form.addEventListener("submit", function (event) {
         event.preventDefault();
         const response = collectFormData(form);
-        const reason = response.chart_choice_reason || "";
+        const selectedReasons = Array.from(form.querySelectorAll('input[name="chart_choice_reason"]:checked')).map(input => input.value);
         const otherText = (response.chart_choice_reason_other || "").trim();
-        if (!reason) {
-          warning.textContent = "Please choose one option before continuing.";
+        if (selectedReasons.length === 0) {
+          warning.textContent = "Please choose at least one option before continuing.";
           warning.style.display = "block";
           return;
         }
-        if (reason === "other" && otherText.length === 0) {
+        if (selectedReasons.includes("other") && otherText.length === 0) {
           warning.textContent = "Please describe your other reason before continuing.";
           warning.style.display = "block";
           return;
@@ -1221,7 +1221,7 @@ function postReasonTrial() {
           receiver_cents: selectedSplit ? selectedSplit.receiver : "",
           selected_chart_label: selectedChartInfo ? selectedChartInfo.selected_chart_label : "",
           selected_chart_type: selectedChartInfo ? selectedChartInfo.selected_chart_type : "",
-          chart_choice_reason: reason,
+          chart_choice_reasons: selectedReasons.join("|"),
           chart_choice_reason_other: otherText,
           post_page4_rt: Math.round(performance.now() - pageStart),
           post_page4_rt_json: JSON.stringify(questionRt)
@@ -1250,6 +1250,13 @@ function postOpenEndedTrial() {
       phase: "post_questionnaire_page_5",
       chosen_split_id: selectedSplit ? selectedSplit.split_id : "",
       selected_chart_type: selectedChartInfo ? selectedChartInfo.selected_chart_type : ""
+    },
+    on_start: function () {
+      plannedFullscreenExit = true;
+      fullscreenAbortArmed = false;
+      if (currentFullscreenElement() && document.exitFullscreen) {
+        document.exitFullscreen();
+      }
     },
     on_load: function () {
       const pageStart = performance.now();
@@ -1333,20 +1340,13 @@ function postQuestionnaireTrials() {
   ];
 }
 
-function exitFullscreenBeforeFollowupTrial() {
+function recordedBlankTrial() {
   return {
     type: jsPsychHtmlKeyboardResponse,
-    stimulus: `<div class="recorded-blank">The decision stage is complete.</div>`,
+    stimulus: `<div class="recorded-blank">Your response has been recorded.</div>`,
     choices: "NO_KEYS",
-    trial_duration: 500,
-    data: { phase: "exit_fullscreen_before_followup" },
-    on_start: function () {
-      plannedFullscreenExit = true;
-      fullscreenAbortArmed = false;
-      if (currentFullscreenElement() && document.exitFullscreen) {
-        document.exitFullscreen();
-      }
-    }
+    trial_duration: 1000,
+    data: { phase: "response_recorded_blank" }
   };
 }
 
@@ -1354,8 +1354,8 @@ function exp3TaskTrials() {
   return [
     stageMessageTrial(),
     splitDecisionTrial(),
-    chartDecisionTrial(),
-    exitFullscreenBeforeFollowupTrial()
+    recordedBlankTrial(),
+    chartDecisionTrial()
   ];
 }
 
@@ -1451,7 +1451,7 @@ async function buildAndRunExperiment() {
 
   timeline.push({
     type: jsPsychPreload,
-    images: ["ModifiedMullerLyer.png"],
+    images: ["ModifiedMullerLyer.png", "instruction-flow_proposerblue.png", "instruction-flow_proposerorange.png"],
     continue_after_error: true,
     data: { phase: "preload" }
   });
