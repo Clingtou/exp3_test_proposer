@@ -204,13 +204,11 @@ const chartOrderPermutations = [
 ];
 
 const positionConditions = [
-  { position_condition: "proposer_left", center_angle_degrees: 270 },
-  { position_condition: "proposer_right", center_angle_degrees: 90 }
+  { position_condition: "proposer_left", center_angle_degrees: 270 }
 ];
 
 const colorConditions = [
-  { color_balance: "proposer_orange_receiver_blue", proposer_color: ORANGE, receiver_color: BLUE },
-  { color_balance: "proposer_blue_receiver_orange", proposer_color: BLUE, receiver_color: ORANGE }
+  { color_balance: "proposer_orange_receiver_blue", proposer_color: ORANGE, receiver_color: BLUE }
 ];
 
 function buildConditionTable() {
@@ -601,16 +599,13 @@ function humanVerificationTrial(imagePath) {
   };
 }
 
-function instructionFlowImagePath(conditionInfo) {
-  return conditionInfo.color_balance === "proposer_blue_receiver_orange"
-    ? "instruction-flow_proposerblue.png"
-    : "instruction-flow_proposerorange.png";
+function instructionFlowImagePath() {
+  return "instruction-flow_proposerorange.png";
 }
 
 function instructionTrial() {
   const renderHtml = function () {
-    const conditionInfo = getAssignedConditionInfo();
-    const imagePath = instructionFlowImagePath(conditionInfo);
+    const imagePath = instructionFlowImagePath();
     return shellHtml(`
       <h2 class="intro-title">Instructions</h2>
       <p>In this study, you will complete a short economic decision-making task. Please read the instructions carefully. Your decisions may affect bonus payments for you and another participant. You will receive a base payment of <span class="doc-red">$${BASE_PAYMENT_USD.toFixed(2)}</span> for completing the study carefully.</p>
@@ -1462,7 +1457,7 @@ async function buildAndRunExperiment() {
 
   timeline.push({
     type: jsPsychPreload,
-    images: ["ModifiedMullerLyer.png", "instruction-flow_proposerblue.png", "instruction-flow_proposerorange.png"],
+    images: ["ModifiedMullerLyer.png", "instruction-flow_proposerorange.png"],
     continue_after_error: true,
     data: { phase: "preload" }
   });
