@@ -814,12 +814,12 @@ li {
 
 .split-option-list {
   display: grid;
-  gap: clamp(18px, 4vh, 38px);
+  gap: clamp(6px, 1vh, 10px);
   justify-items: center;
   width: 100%;
   flex: 1 1 auto;
   align-content: space-evenly;
-  margin: clamp(28px, 5vh, 54px) 0 0 0;
+  margin: clamp(16px, 3vh, 28px) 0 0 0;
 }
 
 .split-option-list .decision-button {
@@ -827,9 +827,9 @@ li {
   align-items: center;
   gap: 12px;
   width: min(620px, 100%);
-  min-height: clamp(72px, 9vh, 96px);
-  padding: 14px 22px;
-  font-size: 22px;
+  min-height: clamp(42px, 5.4vh, 54px);
+  padding: 9px 18px;
+  font-size: 19px;
   line-height: 1.25;
   text-align: left;
 }
@@ -846,6 +846,19 @@ li {
 
 .split-choice-label {
   min-width: 0;
+}
+
+.extreme-split-warning {
+  max-width: 760px;
+  margin: 12px auto 0 auto;
+  padding: 10px 12px;
+  border: 1px solid #ffd0c8;
+  border-radius: 5px;
+  background: #fff4f2;
+  color: var(--danger);
+  font-size: 17px;
+  line-height: 1.4;
+  font-weight: 700;
 }
 
 .selected-split-summary {

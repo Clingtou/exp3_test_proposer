@@ -61,13 +61,32 @@ function desktopCheck() {
 const device = desktopCheck();
 
 const splitOptions = [
+  { split_id: "proposer100_receiver0", proposer: 100, receiver: 0, label: "You get 100 cents; receiver gets 0 cents" },
   { split_id: "proposer90_receiver10", proposer: 90, receiver: 10, label: "You get 90 cents; receiver gets 10 cents" },
   { split_id: "proposer80_receiver20", proposer: 80, receiver: 20, label: "You get 80 cents; receiver gets 20 cents" },
   { split_id: "proposer70_receiver30", proposer: 70, receiver: 30, label: "You get 70 cents; receiver gets 30 cents" },
-  { split_id: "proposer60_receiver40", proposer: 60, receiver: 40, label: "You get 60 cents; receiver gets 40 cents" }
+  { split_id: "proposer60_receiver40", proposer: 60, receiver: 40, label: "You get 60 cents; receiver gets 40 cents" },
+  { split_id: "proposer50_receiver50", proposer: 50, receiver: 50, label: "You get 50 cents; receiver gets 50 cents" },
+  { split_id: "proposer40_receiver60", proposer: 40, receiver: 60, label: "You get 40 cents; receiver gets 60 cents" },
+  { split_id: "proposer30_receiver70", proposer: 30, receiver: 70, label: "You get 30 cents; receiver gets 70 cents" },
+  { split_id: "proposer20_receiver80", proposer: 20, receiver: 80, label: "You get 20 cents; receiver gets 80 cents" },
+  { split_id: "proposer10_receiver90", proposer: 10, receiver: 90, label: "You get 10 cents; receiver gets 90 cents" },
+  { split_id: "proposer0_receiver100", proposer: 0, receiver: 100, label: "You get 0 cents; receiver gets 100 cents" }
 ];
 
-const randomizedSplitOptions = jsPsych.randomization.shuffle(splitOptions.slice());
+function stableHash(text) {
+  let hash = 0;
+  for (let index = 0; index < text.length; index += 1) {
+    hash = ((hash << 5) - hash) + text.charCodeAt(index);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+const splitOrderCondition = stableHash(subject_id) % 2 === 0 ? "you100_to_you0" : "you0_to_you100";
+const orderedSplitOptions = splitOrderCondition === "you100_to_you0"
+  ? splitOptions.slice()
+  : splitOptions.slice().reverse();
 
 jsPsych.data.addProperties({
   Subject: subject_id,
@@ -82,8 +101,10 @@ jsPsych.data.addProperties({
   device_mobile_like: device.mobileLike ? 1 : 0,
   device_small_window: device.smallWindow ? 1 : 0,
   timezone_offset_minutes: new Date().getTimezoneOffset(),
-  split_option_order: randomizedSplitOptions.map(option => option.split_id).join("|"),
-  split_option_order_labels: randomizedSplitOptions.map(option => option.label).join("|")
+  split_order_condition: splitOrderCondition,
+  split_order_assignment_method: "subject_hash_mod_2",
+  split_option_order: orderedSplitOptions.map(option => option.split_id).join("|"),
+  split_option_order_labels: orderedSplitOptions.map(option => option.label).join("|")
 });
 
 function shellHtml(innerHtml, topTitle = STUDY_TITLE, extraClass = "") {
@@ -204,11 +225,11 @@ const chartOrderPermutations = [
 ];
 
 const positionConditions = [
-  { position_condition: "proposer_left", center_angle_degrees: 270 }
+  { position_condition: "receiver_left", center_angle_degrees: 90 }
 ];
 
 const colorConditions = [
-  { color_balance: "proposer_orange_receiver_blue", proposer_color: ORANGE, receiver_color: BLUE }
+  { color_balance: "proposer_blue_receiver_orange", proposer_color: BLUE, receiver_color: ORANGE }
 ];
 
 function buildConditionTable() {
@@ -600,7 +621,7 @@ function humanVerificationTrial(imagePath) {
 }
 
 function instructionFlowImagePath() {
-  return "instruction-flow_proposerorange.png";
+  return "instruction-flow_proposerblue.png";
 }
 
 function instructionTrial() {
@@ -835,6 +856,10 @@ function splitChoiceButtonContent(label, selected = false) {
   return `${marker}<span class="split-choice-label">${label}</span>`;
 }
 
+function isExtremeSplit(split) {
+  return split && (split.proposer === 0 || split.receiver === 0);
+}
+
 function splitDecisionTrial() {
   return {
     type: jsPsychHtmlKeyboardResponse,
@@ -842,11 +867,11 @@ function splitDecisionTrial() {
       <div class="stimulus-content exp3-split-content">
         <div class="offer-title">Decision : Choose one proposal.</div>
         <div class="offer-subtitle">
-          This is your <span class="doc-red">actual decision</span> for this proposal. Please choose one proposal from the four options to send to the receiver.
+          This is your <span class="doc-red">actual decision</span> for this proposal. Please choose one proposal from the options below to send to the receiver.
           You can submit this decision <span class="doc-red">only once</span>. Please consider the proposal carefully before confirming your choice.
         </div>
         <div class="split-option-list">
-          ${randomizedSplitOptions.map(function (option) {
+          ${orderedSplitOptions.map(function (option) {
             return `
               <button class="decision-button split-decision-button" type="button" data-split-id="${option.split_id}" data-label="${option.label}">
                 ${splitChoiceButtonContent(option.label)}
@@ -866,8 +891,9 @@ function splitDecisionTrial() {
     choices: "NO_KEYS",
     data: {
       phase: "proposal_split_decision",
-      split_option_order: randomizedSplitOptions.map(option => option.split_id).join("|"),
-      split_option_order_labels: randomizedSplitOptions.map(option => option.label).join("|")
+      split_order_condition: splitOrderCondition,
+      split_option_order: orderedSplitOptions.map(option => option.split_id).join("|"),
+      split_option_order_labels: orderedSplitOptions.map(option => option.label).join("|")
     },
     on_load: function () {
       const pageStart = performance.now();
@@ -892,13 +918,16 @@ function splitDecisionTrial() {
           }
           currentSplitId = splitId;
           choiceHistory.push({ split_id: splitId, rt: clickRt });
+          const currentSplit = splitOptions.find(option => option.split_id === currentSplitId);
           buttons.forEach(function (b) {
             b.classList.remove("selected");
             b.innerHTML = splitChoiceButtonContent(b.getAttribute("data-label"));
           });
           button.classList.add("selected");
           button.innerHTML = splitChoiceButtonContent(label, true);
-          selectedText.innerHTML = `You selected: <strong>${label}</strong>.`;
+          selectedText.innerHTML = isExtremeSplit(currentSplit)
+            ? `You selected: <strong>${label}</strong>.<div class="extreme-split-warning">This split gives one participant 0 cents, so the visual display step cannot be shown for this proposal. Please consider whether a non-extreme split better reflects your decision. You may still confirm this choice if you are sure.</div>`
+            : `You selected: <strong>${label}</strong>.`;
           confirmPanel.hidden = false;
           confirmPanel.scrollIntoView({ block: "nearest", behavior: "smooth" });
         });
@@ -916,6 +945,7 @@ function splitDecisionTrial() {
           chosen_split_label: selectedSplit.label,
           proposer_cents: selectedSplit.proposer,
           receiver_cents: selectedSplit.receiver,
+          extreme_split_selected: isExtremeSplit(selectedSplit) ? 1 : 0,
           first_split_choice: firstSplitId,
           split_choice_changed_count: choiceChangedCount,
           split_choice_history_json: JSON.stringify(choiceHistory),
@@ -1090,6 +1120,7 @@ function postScaleTrial(questions, pageNumber) {
     data: {
       phase: `post_questionnaire_page_${pageNumber}`,
       chosen_split_id: selectedSplit ? selectedSplit.split_id : "",
+      extreme_split_selected: isExtremeSplit(selectedSplit) ? 1 : 0,
       selected_chart_type: selectedChartInfo ? selectedChartInfo.selected_chart_type : ""
     },
     on_load: function () {
@@ -1119,6 +1150,7 @@ function postScaleTrial(questions, pageNumber) {
           chosen_split_id: selectedSplit ? selectedSplit.split_id : "",
           proposer_cents: selectedSplit ? selectedSplit.proposer : "",
           receiver_cents: selectedSplit ? selectedSplit.receiver : "",
+          extreme_split_selected: isExtremeSplit(selectedSplit) ? 1 : 0,
           selected_chart_label: selectedChartInfo ? selectedChartInfo.selected_chart_label : "",
           selected_chart_type: selectedChartInfo ? selectedChartInfo.selected_chart_type : "",
           [`post_page${pageNumber}_rt`]: pageRt,
@@ -1133,11 +1165,15 @@ function postScaleTrial(questions, pageNumber) {
   };
 }
 
+function hasSelectedDisplayFormat() {
+  return selectedChartInfo !== null;
+}
+
 function postReasonTrial() {
   const options = [
     { value: "accurate", label: "It represented the split most accurately." },
     { value: "receiver_larger", label: "It made the receiver's amount look larger." },
-    { value: "own_larger", label: "It made my own amount look larger." },
+    { value: "receiver_stand_out", label: "It made the receiver's amount stand out more." },
     { value: "fairer", label: "It made the proposal look fairer." },
     { value: "acceptance", label: "It made the proposal more likely to be accepted." },
     { value: "clear_appealing", label: "It looked clearer or more visually appealing." },
@@ -1150,13 +1186,13 @@ function postReasonTrial() {
       <form id="post-reason-form" novalidate>
         <h2 class="intro-title">Follow-up Questions</h2>
         <div class="form-question">
-          <div class="question-text">What was your main reason for choosing this chart? (Select all that apply.)</div>
-          <div class="single-choice-list" role="group" aria-label="Chart choice reasons">
+          <div class="question-text">What was the main reason you chose this display format?</div>
+          <div class="single-choice-list" role="radiogroup" aria-label="Display format choice reason">
             ${options.map(function (option) {
               if (option.value === "other") {
                 return `
                   <label class="single-choice-option">
-                    <input type="checkbox" name="chart_choice_reason" value="other">
+                    <input type="radio" name="chart_choice_reason" value="other">
                     <span class="reason-other-row">
                       <span>${option.label}</span>
                       <input id="chart-reason-other" class="reason-other-input" name="chart_choice_reason_other" type="text" autocomplete="off">
@@ -1166,15 +1202,20 @@ function postReasonTrial() {
               }
               return `
                 <label class="single-choice-option">
-                  <input type="checkbox" name="chart_choice_reason" value="${option.value}">
+                  <input type="radio" name="chart_choice_reason" value="${option.value}">
                   <span>${option.label}</span>
                 </label>
               `;
             }).join("")}
           </div>
         </div>
-        <button type="submit" class="form-submit">Continue</button>
-        <div id="post-required" class="required-note">Please choose at least one option before continuing.</div>
+        <div class="form-question">
+          <label class="question-text post-open-question" for="study-issue-comment">Was anything unclear, confusing, or unexpected in this task?</label>
+          <p>You may leave this blank if everything was clear.</p>
+          <textarea id="study-issue-comment" class="text-area post-open-textarea" name="study_issue_comment" rows="5"></textarea>
+        </div>
+        <button type="submit" class="form-submit">Submit</button>
+        <div id="post-required" class="required-note">Please choose one option before continuing.</div>
       </form>
     `),
     choices: "NO_KEYS",
@@ -1182,6 +1223,13 @@ function postReasonTrial() {
       phase: "post_questionnaire_page_4",
       chosen_split_id: selectedSplit ? selectedSplit.split_id : "",
       selected_chart_type: selectedChartInfo ? selectedChartInfo.selected_chart_type : ""
+    },
+    on_start: function () {
+      plannedFullscreenExit = true;
+      fullscreenAbortArmed = false;
+      if (currentFullscreenElement() && document.exitFullscreen) {
+        document.exitFullscreen();
+      }
     },
     on_load: function () {
       const pageStart = performance.now();
@@ -1191,30 +1239,34 @@ function postReasonTrial() {
       const questionRt = {};
       Array.from(form.querySelectorAll('input[name="chart_choice_reason"]')).forEach(function (input) {
         input.addEventListener("change", function () {
-          questionRt.chart_choice_reasons = Math.round(performance.now() - pageStart);
+          questionRt.chart_choice_reason = Math.round(performance.now() - pageStart);
         });
       });
       otherInput.addEventListener("focus", function () {
-        const otherCheckbox = form.querySelector('input[name="chart_choice_reason"][value="other"]');
-        if (otherCheckbox) {
-          otherCheckbox.checked = true;
-          questionRt.chart_choice_reasons = Math.round(performance.now() - pageStart);
+        const otherRadio = form.querySelector('input[name="chart_choice_reason"][value="other"]');
+        if (otherRadio) {
+          otherRadio.checked = true;
+          questionRt.chart_choice_reason = Math.round(performance.now() - pageStart);
         }
       });
       otherInput.addEventListener("input", function () {
         questionRt.chart_choice_reason_other = Math.round(performance.now() - pageStart);
       });
+      const openInput = document.getElementById("study-issue-comment");
+      openInput.addEventListener("input", function () {
+        questionRt.study_issue_comment = Math.round(performance.now() - pageStart);
+      });
       form.addEventListener("submit", function (event) {
         event.preventDefault();
         const response = collectFormData(form);
-        const selectedReasons = Array.from(form.querySelectorAll('input[name="chart_choice_reason"]:checked')).map(input => input.value);
+        const reason = response.chart_choice_reason || "";
         const otherText = (response.chart_choice_reason_other || "").trim();
-        if (selectedReasons.length === 0) {
-          warning.textContent = "Please choose at least one option before continuing.";
+        if (!reason) {
+          warning.textContent = "Please choose one option before continuing.";
           warning.style.display = "block";
           return;
         }
-        if (selectedReasons.includes("other") && otherText.length === 0) {
+        if (reason === "other" && otherText.length === 0) {
           warning.textContent = "Please describe your other reason before continuing.";
           warning.style.display = "block";
           return;
@@ -1227,8 +1279,9 @@ function postReasonTrial() {
           receiver_cents: selectedSplit ? selectedSplit.receiver : "",
           selected_chart_label: selectedChartInfo ? selectedChartInfo.selected_chart_label : "",
           selected_chart_type: selectedChartInfo ? selectedChartInfo.selected_chart_type : "",
-          chart_choice_reasons: selectedReasons.join("|"),
+          chart_choice_reason: reason,
           chart_choice_reason_other: otherText,
+          study_issue_comment: (response.study_issue_comment || "").trim(),
           post_page4_rt: Math.round(performance.now() - pageStart),
           post_page4_rt_json: JSON.stringify(questionRt)
         });
@@ -1253,7 +1306,7 @@ function postOpenEndedTrial() {
     `),
     choices: "NO_KEYS",
     data: {
-      phase: "post_questionnaire_page_5",
+      phase: "post_questionnaire_page_4",
       chosen_split_id: selectedSplit ? selectedSplit.split_id : "",
       selected_chart_type: selectedChartInfo ? selectedChartInfo.selected_chart_type : ""
     },
@@ -1271,14 +1324,15 @@ function postOpenEndedTrial() {
         event.preventDefault();
         const response = collectFormData(form);
         jsPsych.finishTrial({
-          post_questionnaire_page: 5,
+          post_questionnaire_page: 4,
           chosen_split_id: selectedSplit ? selectedSplit.split_id : "",
           proposer_cents: selectedSplit ? selectedSplit.proposer : "",
           receiver_cents: selectedSplit ? selectedSplit.receiver : "",
+          extreme_split_selected: isExtremeSplit(selectedSplit) ? 1 : 0,
           selected_chart_label: selectedChartInfo ? selectedChartInfo.selected_chart_label : "",
           selected_chart_type: selectedChartInfo ? selectedChartInfo.selected_chart_type : "",
           study_issue_comment: response.study_issue_comment.trim(),
-          post_page5_rt: Math.round(performance.now() - pageStart)
+          post_page4_rt: Math.round(performance.now() - pageStart)
         });
       });
     }
@@ -1302,7 +1356,7 @@ function postQuestionnaireTrials() {
       },
       {
         name: "split_make_receiver_accept_7",
-        text: "To what extent did you choose this split to make the receiver likely to accept?",
+        text: "To what extent did you choose this split because you thought the receiver would accept it?",
         left: "1 = Not at all",
         right: "7 = Very much"
       }
@@ -1310,39 +1364,48 @@ function postQuestionnaireTrials() {
     postScaleTrial([
       {
         name: "receiver_accept_likelihood_chart_7",
-        text: "How likely do you think the receiver would be to accept your proposal with the chart you selected?",
+        text: "How likely do you think the <strong>receiver</strong> would be to accept your proposal as presented?",
         left: "1 = Very unlikely",
         right: "7 = Very likely"
       },
       {
         name: "receiver_perceived_fairness_chart_7",
-        text: "How fair do you think the receiver would perceive your proposal to be with the chart you selected?",
+        text: "How fair do you think the <strong>receiver</strong> would perceive your proposal to be as presented?",
         left: "1 = Very unfair",
         right: "7 = Very fair"
-      },
-      {
-        name: "receiver_anger_chart_7",
-        text: "How angry do you think the receiver would feel about your proposal with the chart you selected?",
-        left: "1 = Not angry at all",
-        right: "7 = Extremely angry"
       }
     ], 2),
-    postScaleTrial([
-      {
-        name: "chart_more_acceptable_7",
-        text: "How much did the chart you selected make the proposal look more acceptable to the receiver?",
-        left: "1 = Not at all",
-        right: "7 = Very much"
-      },
-      {
-        name: "chart_misleading_7",
-        text: "How misleading do you think the chart you selected was?",
-        left: "1 = Not misleading at all",
-        right: "7 = Very misleading"
+    {
+      timeline: [postScaleTrial([
+        {
+          name: "chart_more_acceptable_7",
+          text: "How much did the chart you selected make the proposal look more acceptable to the receiver?",
+          left: "1 = Not at all",
+          right: "7 = Very much"
+        },
+        {
+          name: "chart_misleading_7",
+          text: "How misleading do you think the chart you selected was?",
+          left: "1 = Not misleading at all",
+          right: "7 = Very misleading"
+        }
+      ], 3)],
+      conditional_function: function () {
+        return hasSelectedDisplayFormat();
       }
-    ], 3),
-    postReasonTrial(),
-    postOpenEndedTrial()
+    },
+    {
+      timeline: [postReasonTrial()],
+      conditional_function: function () {
+        return hasSelectedDisplayFormat();
+      }
+    },
+    {
+      timeline: [postOpenEndedTrial()],
+      conditional_function: function () {
+        return !hasSelectedDisplayFormat();
+      }
+    }
   ];
 }
 
@@ -1361,7 +1424,12 @@ function exp3TaskTrials() {
     stageMessageTrial(),
     splitDecisionTrial(),
     recordedBlankTrial(),
-    chartDecisionTrial()
+    {
+      timeline: [chartDecisionTrial()],
+      conditional_function: function () {
+        return selectedSplit && !isExtremeSplit(selectedSplit);
+      }
+    }
   ];
 }
 
@@ -1457,7 +1525,7 @@ async function buildAndRunExperiment() {
 
   timeline.push({
     type: jsPsychPreload,
-    images: ["ModifiedMullerLyer.png", "instruction-flow_proposerorange.png"],
+    images: ["ModifiedMullerLyer.png", "instruction-flow_proposerblue.png"],
     continue_after_error: true,
     data: { phase: "preload" }
   });
