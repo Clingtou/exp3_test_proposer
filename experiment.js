@@ -630,12 +630,12 @@ function instructionTrial() {
     return shellHtml(`
       <h2 class="intro-title">Instructions</h2>
       <p>In this study, you will complete a short economic decision-making task. Please read the instructions carefully. Your decisions may affect bonus payments for you and another participant. You will receive a base payment of <span class="doc-red">$${BASE_PAYMENT_USD.toFixed(2)}</span> for completing the study carefully.</p>
-      <p>There are two roles in this task: <span class="doc-red">proposer</span> and <span class="doc-red">receiver</span>. The proposer decides how to divide <span class="doc-red">100 cents</span> between themself and a receiver. The receiver then decides whether to accept or reject the proposal.</p>
+      <p>There are two roles in this task: <span class="doc-red">proposer</span> and <span class="doc-red">receiver</span>. The proposer controls how to divide <span class="doc-red">100 cents</span> between themself and a receiver. The receiver then decides whether to accept or reject the proposal.</p>
       <div class="instruction-flow-wrap">
         <img class="instruction-flow-image" src="${imagePath}" alt="Diagram showing the proposer decision, receiver decision, and possible outcomes.">
       </div>
       <p>You have been assigned to the role of <span class="doc-red">PROPOSER</span>.</p>
-      <p>You will make a decision by choosing one allocation of <span class="doc-red">100 cents</span> to send to the receiver.</p>
+      <p>You will decide how much of the <span class="doc-red">100 cents</span> to keep for yourself and how much to offer to the receiver. There is no correct split.</p>
       <ul>
         <li>If the receiver <span class="doc-red">accepts</span> your proposal, you and the receiver receive the proposed amounts.</li>
         <li>If the receiver <span class="doc-red">rejects</span> your proposal, both you and the receiver receive 0 cents from the proposal.</li>
