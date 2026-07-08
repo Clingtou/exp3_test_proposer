@@ -629,19 +629,19 @@ function instructionTrial() {
     const imagePath = instructionFlowImagePath();
     return shellHtml(`
       <h2 class="intro-title">Instructions</h2>
-      <p>In this study, you will complete a short economic decision-making task. Please read the instructions carefully. Your decisions may affect bonus payments for you and another participant. You will receive a base payment of <span class="doc-red">$${BASE_PAYMENT_USD.toFixed(2)}</span> for completing the study carefully.</p>
+      <p>In this study, you will complete a short economic decision-making task. Please read the instructions carefully. Your decision may affect bonus payments for you and another participant. You will receive a base payment of <span class="doc-red">$${BASE_PAYMENT_USD.toFixed(2)}</span> for completing the study carefully.</p>
       <p>There are two roles in this task: <span class="doc-red">proposer</span> and <span class="doc-red">receiver</span>. The proposer controls how to divide <span class="doc-red">100 cents</span> between themself and a receiver. The receiver then decides whether to accept or reject the proposal.</p>
       <div class="instruction-flow-wrap">
         <img class="instruction-flow-image" src="${imagePath}" alt="Diagram showing the proposer decision, receiver decision, and possible outcomes.">
       </div>
       <p>You have been assigned to the role of <span class="doc-red">PROPOSER</span>.</p>
-      <p>You will decide how much of the <span class="doc-red">100 cents</span> to keep for yourself and how much to offer to the receiver. There is no correct split.</p>
+      <p>You will decide how much of the <span class="doc-red">100 cents</span> to keep for yourself and how much to offer to the receiver. If your proposal is matched with a receiver selected for bonus payment:</p>
       <ul>
-        <li>If the receiver <span class="doc-red">accepts</span> your proposal, you and the receiver receive the proposed amounts.</li>
-        <li>If the receiver <span class="doc-red">rejects</span> your proposal, both you and the receiver receive 0 cents from the proposal.</li>
+        <li>If the receiver <span class="doc-red">accepts</span> your proposal, you and the receiver will receive the proposed amounts.</li>
+        <li>If the receiver <span class="doc-red">rejects</span> your proposal, both you and the receiver will receive 0 cents from the proposal.</li>
       </ul>
       <p>You and the receiver will not know any personal information about each other.</p>
-      <p>After data collection is complete, <span class="doc-red">${BONUS_DRAW_PERCENT}%</span> of receivers will be randomly selected for real bonus payment. If a receiver is selected, your decision may be paired with that receiver's response, and the outcome will determine the bonus for you and the receiver. The bonus will be paid as a Prolific bonus. Bonus payments will be processed within two months after data collection is complete.</p>
+      <p>After data collection is complete, <span class="doc-red">${BONUS_DRAW_PERCENT}%</span> of receivers will be randomly selected for real bonus payment. If your proposal is matched with a selected receiver, the proposal you submit and that receiver's accept/reject decision will determine the proposal bonus for both of you. The bonus will be paid as a Prolific bonus. Bonus payments will be processed within two months after data collection is complete.</p>
       <p>Therefore, please consider your choice carefully, because your decision may affect a real bonus for both you and another participant.</p>
     `, STUDY_TITLE, "instruction-shell");
   };
