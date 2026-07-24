@@ -39,6 +39,18 @@ function currentFullscreenElement() {
   return document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement || null;
 }
 
+function exitFullscreenAfterTaskQuestionsSubmit() {
+  plannedFullscreenExit = true;
+  fullscreenAbortArmed = false;
+  const exitFullscreen = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+  if (currentFullscreenElement() && exitFullscreen) {
+    const exitResult = exitFullscreen.call(document);
+    if (exitResult && typeof exitResult.catch === "function") {
+      exitResult.catch(function () {});
+    }
+  }
+}
+
 const prolific_pid = jsPsych.data.getURLVariable("PROLIFIC_PID") || "missing";
 const study_id = jsPsych.data.getURLVariable("STUDY_ID") || "missing";
 const session_id = jsPsych.data.getURLVariable("SESSION_ID") || jsPsych.randomization.randomID(12);
@@ -964,7 +976,6 @@ function splitDecisionTrial() {
             ? `You selected: <strong>${label}</strong>.<div class="extreme-split-warning">This split gives one participant 0 cents, so the visual display step cannot be shown for this proposal. Please consider whether a non-extreme split better reflects your decision. You may still confirm this choice if you are sure.</div>`
             : `You selected: <strong>${label}</strong>.`;
           confirmPanel.hidden = false;
-          confirmPanel.scrollIntoView({ block: "nearest", behavior: "smooth" });
         });
       });
 
@@ -1000,7 +1011,7 @@ function forcedUnequalSplitTrial() {
   return {
     type: jsPsychHtmlKeyboardResponse,
     stimulus: shellHtml(`
-      <div class="stimulus-content exp3-split-content">
+      <div class="stimulus-content exp3-split-content exp3-forced-split-content">
         <div class="offer-title">Decision : Choose one <span class="doc-red">unequal</span> proposal.</div>
         <div class="offer-subtitle">
           <p>You selected an equal split in the previous decision. Because we are also interested in decisions involving <span class="doc-red">unequal</span> splits, you will now make a <span class="doc-red">second</span> proposal. All options below are unequal and give you more than the receiver. Please choose one option.</p>
@@ -1065,7 +1076,6 @@ function forcedUnequalSplitTrial() {
             ? `You selected: <strong>${label}</strong>.<div class="extreme-split-warning">This split gives one participant 0 cents, so the visual display step cannot be shown for this proposal. Please consider whether a non-extreme split better reflects your decision. You may still confirm this choice if you are sure.</div>`
             : `You selected: <strong>${label}</strong>.`;
           confirmPanel.hidden = false;
-          confirmPanel.scrollIntoView({ block: "nearest", behavior: "smooth" });
         });
       });
 
@@ -1203,7 +1213,6 @@ function chartDecisionTrial() {
           button.classList.add("selected");
           selectedText.innerHTML = `You selected: <strong>Option ${chartLabel}</strong>.`;
           confirmPanel.hidden = false;
-          confirmPanel.scrollIntoView({ block: "nearest", behavior: "smooth" });
         });
       });
 
@@ -1374,13 +1383,6 @@ function postReasonTrial() {
       selected_chart_type: selectedChartInfo ? selectedChartInfo.selected_chart_type : "",
       ...splitTrackingData()
     },
-    on_start: function () {
-      plannedFullscreenExit = true;
-      fullscreenAbortArmed = false;
-      if (currentFullscreenElement() && document.exitFullscreen) {
-        document.exitFullscreen();
-      }
-    },
     on_load: function () {
       const pageStart = performance.now();
       const form = document.getElementById("post-reason-form");
@@ -1422,6 +1424,7 @@ function postReasonTrial() {
           return;
         }
         warning.style.display = "none";
+        exitFullscreenAfterTaskQuestionsSubmit();
         jsPsych.finishTrial({
           post_questionnaire_page: 4,
           chosen_split_id: selectedSplit ? selectedSplit.split_id : "",
@@ -1462,19 +1465,13 @@ function postOpenEndedTrial() {
       selected_chart_type: selectedChartInfo ? selectedChartInfo.selected_chart_type : "",
       ...splitTrackingData()
     },
-    on_start: function () {
-      plannedFullscreenExit = true;
-      fullscreenAbortArmed = false;
-      if (currentFullscreenElement() && document.exitFullscreen) {
-        document.exitFullscreen();
-      }
-    },
     on_load: function () {
       const pageStart = performance.now();
       const form = document.getElementById("post-open-form");
       form.addEventListener("submit", function (event) {
         event.preventDefault();
         const response = collectFormData(form);
+        exitFullscreenAfterTaskQuestionsSubmit();
         jsPsych.finishTrial({
           post_questionnaire_page: 4,
           chosen_split_id: selectedSplit ? selectedSplit.split_id : "",

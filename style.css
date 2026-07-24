@@ -22,6 +22,12 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 .jspsych-display-element,
 .jspsych-content-wrapper,
 #jspsych-content {
@@ -68,11 +74,28 @@ body {
 }
 
 .instruction-shell {
-  margin-bottom: 44px;
+  width: min(1020px, calc(100vw - 64px));
+  margin-top: 28px;
+  margin-bottom: 28px;
 }
 
 #jspsych-content:has(.instruction-shell) .jspsych-btn {
-  margin-bottom: 44px !important;
+  margin-bottom: 28px !important;
+}
+
+.instruction-shell .qualtrics-card {
+  padding: 28px 38px;
+}
+
+.instruction-shell .intro-title {
+  font-size: 26px;
+  margin-bottom: 10px;
+}
+
+.instruction-shell p,
+.instruction-shell li {
+  font-size: 17px;
+  line-height: 1.42;
 }
 
 .intro-title {
@@ -113,25 +136,26 @@ li {
 }
 
 .fullscreen-message {
-  width: min(980px, calc(100vw - 72px));
-  margin: 0 auto 20px auto;
+  width: min(900px, calc(100vw - 72px));
+  margin: 0 auto 14px auto;
   text-align: left;
   color: var(--text);
-  font-size: 24px;
-  line-height: 1.6;
+  font-size: 20px;
+  line-height: 1.45;
 }
 
 .fullscreen-message h2 {
-  font-size: 30px;
+  font-size: 26px;
   line-height: 1.25;
-  margin: 0 0 16px 0;
+  margin: 0 0 10px 0;
   text-align: center;
 }
 
 .fullscreen-message p {
-  font-size: 19px;
-  line-height: 1.72;
+  font-size: 16px;
+  line-height: 1.48;
   text-align: left;
+  margin: 8px 0;
 }
 
 .fullscreen-warning {
@@ -141,19 +165,19 @@ li {
 .fullscreen-consent {
   width: fit-content;
   max-width: 100%;
-  margin: 18px 0 0 0;
+  margin: 12px 0 0 0;
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 12px;
-  font-size: 19px;
+  gap: 10px;
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
 }
 
 .fullscreen-consent input {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   margin: 0;
   accent-color: var(--blue);
 }
@@ -166,14 +190,14 @@ li {
   align-items: center;
   justify-content: flex-start;
   box-sizing: border-box;
-  padding-top: 6vh;
+  padding-top: 4vh;
   text-align: left;
 }
 
 #jspsych-content:has(.fullscreen-message) .jspsych-btn {
   display: block;
   align-self: flex-start;
-  margin: 22px 0 0 max(36px, calc((100vw - 980px) / 2)) !important;
+  margin: 16px 0 0 max(36px, calc((100vw - 900px) / 2)) !important;
 }
 
 .jspsych-btn,
@@ -254,37 +278,81 @@ li {
   box-shadow: 0 0 0 2px rgba(47, 128, 237, 0.12);
 }
 
+#comprehension-form .intro-title {
+  font-size: 26px;
+  margin-bottom: 10px;
+}
+
+#comprehension-form > p {
+  font-size: 16px;
+  line-height: 1.4;
+  margin: 6px 0 12px 0;
+}
+
+#comprehension-form .form-question {
+  margin: 14px 0 18px 0;
+  padding-bottom: 14px;
+}
+
+#comprehension-form .question-text {
+  font-size: 18px;
+  line-height: 1.3;
+  margin-bottom: 9px;
+}
+
+#comprehension-form .single-choice-list {
+  gap: 7px;
+  max-width: 720px;
+}
+
+#comprehension-form .single-choice-option {
+  padding: 9px 12px;
+  font-size: 16px;
+  line-height: 1.25;
+}
+
+#comprehension-form .single-choice-option input[type="radio"] {
+  width: 16px;
+  height: 16px;
+}
+
+#comprehension-form .form-submit {
+  margin-top: 14px !important;
+  padding: 10px 24px !important;
+  font-size: 17px !important;
+}
+
 .human-verification-form {
-  width: min(640px, calc(100vw - 48px));
+  width: min(560px, calc(100vw - 48px));
   min-height: 100vh;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  transform: translateY(-28px);
+  transform: translateY(-18px);
 }
 
 .verification-question {
   color: #555;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   line-height: 1.35;
-  margin-bottom: 22px;
+  margin-bottom: 16px;
   text-align: center;
 }
 
 .verification-image {
   display: block;
-  width: min(392px, 100%);
+  width: min(330px, 100%);
   height: auto;
-  margin: 0 0 22px 0;
+  margin: 0 0 16px 0;
 }
 
 .verification-options {
   display: grid;
-  gap: 10px;
-  width: 140px;
+  gap: 6px;
+  width: 124px;
   justify-items: stretch;
 }
 
@@ -292,10 +360,11 @@ li {
   border: none;
   box-shadow: none;
   background: transparent;
-  padding: 6px 0;
+  padding: 4px 0;
   color: #555;
   justify-content: flex-start;
   text-align: left;
+  font-size: 17px;
 }
 
 .verification-options .single-choice-option:hover,
@@ -348,14 +417,14 @@ li {
 }
 
 .instruction-flow-wrap {
-  margin: 12px 0 24px 0;
+  margin: 8px 0 16px 0;
   display: flex;
   justify-content: center;
   overflow: visible;
 }
 
 .instruction-flow-image {
-  width: min(100%, 860px);
+  width: min(100%, 760px);
   height: auto;
   display: block;
   margin: 0;
@@ -402,15 +471,31 @@ li {
 }
 
 .study-shell.stimulus-shell .qualtrics-card {
-  padding: 30px 52px 28px 52px;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 34px 14px 34px;
+  overflow: hidden;
 }
 
 .study-shell.stimulus-shell {
-  width: min(1260px, calc(100vw - 40px));
-  margin: 14px auto;
+  width: min(1320px, calc(100vw - 24px));
+  height: calc(100vh - 16px);
+  margin: 8px auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.study-shell.stimulus-shell .qualtrics-topbar {
+  flex: 0 0 auto;
+  padding: 14px 24px;
+  font-size: 21px;
 }
 
 .stimulus-content {
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -418,18 +503,25 @@ li {
 
 .offer-title {
   width: 100%;
-  font-size: 32px;
+  font-size: 28px;
   line-height: 1.2;
   font-weight: 700;
-  margin: 0 0 8px 0;
+  margin: 0 0 6px 0;
   white-space: nowrap;
 }
 
 .offer-subtitle {
   width: 100%;
-  font-size: 22px;
+  font-size: 19px;
+  line-height: 1.32;
   color: var(--muted);
   margin: 0 0 2px 0;
+}
+
+.offer-subtitle p {
+  margin: 0 0 6px 0;
+  font-size: inherit;
+  line-height: inherit;
 }
 
 .rose-wrap {
@@ -572,17 +664,20 @@ li {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 18px;
+  margin-top: 10px;
   width: 100%;
+  min-height: 72px;
 }
 
 .decision-confirm-panel[hidden] {
-  display: none;
+  display: flex !important;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .selected-choice-text {
   color: var(--text);
-  font-size: 23px;
+  font-size: 19px;
   line-height: 1.35;
   text-align: center;
 }
@@ -596,17 +691,17 @@ li {
   position: relative;
   display: flex;
   justify-content: center;
-  margin-top: 14px;
+  margin-top: 8px;
 }
 
 .confirm-choice-button {
-  width: 320px;
+  width: 270px;
   border: 2px solid var(--blue-dark);
   background: var(--blue);
   color: #fff;
   border-radius: 6px;
-  padding: 14px 20px;
-  font-size: 23px;
+  padding: 9px 16px;
+  font-size: 19px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -753,8 +848,21 @@ li {
     margin: 22px auto;
   }
 
+  .study-shell.stimulus-shell,
+  .study-shell.exp3-wide-shell,
+  .study-shell.exp3-chart-shell {
+    width: min(1000px, calc(100vw - 18px));
+    height: calc(100vh - 12px);
+    margin: 6px auto;
+  }
+
   .qualtrics-card {
     padding: 30px 24px;
+  }
+
+  .study-shell.stimulus-shell .qualtrics-card,
+  .study-shell.exp3-wide-shell .qualtrics-card {
+    padding: 12px 16px 10px 16px;
   }
 
   .offer-title {
@@ -785,26 +893,30 @@ li {
 
 .study-shell.exp3-wide-shell {
   width: min(1500px, calc(100vw - 24px));
-  min-height: calc(100vh - 36px);
-  margin: 18px auto;
+  height: calc(100vh - 16px);
+  min-height: 0;
+  margin: 8px auto;
   display: flex;
   flex-direction: column;
 }
 
 .study-shell.exp3-chart-shell {
-  height: calc(100vh - 36px);
-  min-height: 760px;
+  height: calc(100vh - 16px);
+  min-height: 0;
 }
 
 .study-shell.exp3-wide-shell .qualtrics-card {
   flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 22px 30px 20px 30px;
+  padding: 14px 24px 12px 24px;
+  overflow: hidden;
 }
 
 .exp3-split-content {
-  min-height: max(540px, calc(100vh - 210px));
+  height: 100%;
+  min-height: 0;
 }
 
 .exp3-split-content .offer-title,
@@ -812,14 +924,36 @@ li {
   align-self: stretch;
 }
 
+.exp3-split-content .decision-confirm-panel[hidden] {
+  display: none !important;
+}
+
+.exp3-forced-split-content .split-option-list {
+  flex: 1 1 auto;
+  align-content: center;
+  gap: clamp(12px, 2.1vh, 22px);
+  margin: clamp(18px, 3vh, 30px) 0 0 0;
+}
+
+.exp3-forced-split-content .split-option-list .decision-button {
+  min-height: clamp(58px, 8vh, 78px);
+  padding: 12px 20px;
+  font-size: 20px;
+}
+
+.exp3-forced-split-content .decision-confirm-panel {
+  margin-top: auto;
+  padding-bottom: clamp(2px, 1.2vh, 12px);
+}
+
 .split-option-list {
   display: grid;
-  gap: clamp(6px, 1vh, 10px);
+  gap: clamp(3px, 0.55vh, 7px);
   justify-items: center;
   width: 100%;
   flex: 1 1 auto;
   align-content: space-evenly;
-  margin: clamp(16px, 3vh, 28px) 0 0 0;
+  margin: clamp(22px, 4vh, 42px) 0 0 0;
 }
 
 .split-option-list .decision-button {
@@ -827,9 +961,9 @@ li {
   align-items: center;
   gap: 12px;
   width: min(620px, 100%);
-  min-height: clamp(42px, 5.4vh, 54px);
-  padding: 9px 18px;
-  font-size: 19px;
+  min-height: clamp(32px, 4.2vh, 42px);
+  padding: 5px 14px;
+  font-size: 17px;
   line-height: 1.25;
   text-align: left;
 }
@@ -842,6 +976,13 @@ li {
   border-radius: 50%;
   background: #fff;
   box-sizing: border-box;
+}
+
+.split-option-list .decision-check {
+  width: 20px;
+  height: 20px;
+  margin-right: 0;
+  font-size: 14px;
 }
 
 .split-choice-label {
@@ -863,9 +1004,9 @@ li {
 
 .selected-split-summary {
   width: 100%;
-  margin: 8px 0 14px 0;
+  margin: 4px 0 8px 0;
   color: var(--muted);
-  font-size: 19px;
+  font-size: 16px;
   line-height: 1.35;
 }
 
@@ -876,7 +1017,7 @@ li {
   width: 100%;
   flex: 1 1 auto;
   min-height: 0;
-  margin-top: clamp(24px, 3.5vh, 42px);
+  margin-top: clamp(8px, 1.4vh, 16px);
 }
 
 .chart-choice-button {
@@ -888,7 +1029,7 @@ li {
   border: 2px solid #aab4c1;
   border-radius: 6px;
   background: #fff;
-  padding: 8px 8px 16px 8px;
+  padding: 6px 6px 10px 6px;
   color: var(--text);
   cursor: pointer;
   height: 100%;
@@ -912,32 +1053,32 @@ li {
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 330px;
-  margin-bottom: clamp(18px, 3vh, 34px);
+  min-height: 0;
+  margin-bottom: clamp(6px, 1vh, 12px);
 }
 
 .chart-option-visual .rose-chart {
   width: 100%;
-  height: clamp(330px, 45vh, 470px);
+  height: clamp(260px, 38vh, 390px);
   min-width: 0;
   min-height: 0;
 }
 
 .chart-option-visual .callout-text {
-  font-size: 34px;
+  font-size: 30px;
 }
 
 .chart-option-visual .callout-amount {
-  font-size: 34px;
+  font-size: 30px;
 }
 
 .chart-option-label {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 34px;
-  margin-top: 10px;
-  font-size: 21px;
+  min-height: 28px;
+  margin-top: 4px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--text);
 }
@@ -951,25 +1092,25 @@ li {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  margin-right: 8px;
+  width: 20px;
+  height: 20px;
+  margin-right: 6px;
   border-radius: 50%;
   background: var(--blue);
   color: #fff;
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1;
 }
 
 .exp3-chart-content .offer-title {
-  font-size: 32px;
-  margin-bottom: 8px;
+  font-size: 27px;
+  margin-bottom: 6px;
   white-space: normal;
 }
 
 .exp3-chart-content .offer-subtitle {
-  font-size: 22px;
-  line-height: 1.45;
+  font-size: 18px;
+  line-height: 1.28;
 }
 
 .exp3-chart-content {
@@ -1022,15 +1163,15 @@ li {
 
   .chart-choice-button {
     padding: 6px;
-    min-height: 330px;
+    min-height: 0;
   }
 
   .chart-option-visual {
-    min-height: 250px;
+    min-height: 0;
   }
 
   .chart-option-visual .rose-chart {
-    height: 250px;
+    height: clamp(220px, 34vh, 300px);
   }
 
   .chart-option-label {
