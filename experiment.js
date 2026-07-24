@@ -31,6 +31,8 @@ let excludedForComprehension = false;
 let dataSavedToDatapipe = false;
 let assignedConditionInfo = null;
 let selectedSplit = null;
+let initialSelectedSplit = null;
+let forcedUnequalSplit = null;
 let selectedChartInfo = null;
 
 function currentFullscreenElement() {
@@ -87,6 +89,7 @@ const splitOrderCondition = stableHash(subject_id) % 2 === 0 ? "you100_to_you0" 
 const orderedSplitOptions = splitOrderCondition === "you100_to_you0"
   ? splitOptions.slice()
   : splitOptions.slice().reverse();
+const orderedProposerMoreSplitOptions = orderedSplitOptions.filter(option => option.proposer > option.receiver);
 
 jsPsych.data.addProperties({
   Subject: subject_id,
@@ -104,7 +107,9 @@ jsPsych.data.addProperties({
   split_order_condition: splitOrderCondition,
   split_order_assignment_method: "subject_hash_mod_2",
   split_option_order: orderedSplitOptions.map(option => option.split_id).join("|"),
-  split_option_order_labels: orderedSplitOptions.map(option => option.label).join("|")
+  split_option_order_labels: orderedSplitOptions.map(option => option.label).join("|"),
+  forced_unequal_option_order: orderedProposerMoreSplitOptions.map(option => option.split_id).join("|"),
+  forced_unequal_option_order_labels: orderedProposerMoreSplitOptions.map(option => option.label).join("|")
 });
 
 function shellHtml(innerHtml, topTitle = STUDY_TITLE, extraClass = "") {
@@ -229,7 +234,7 @@ const positionConditions = [
 ];
 
 const colorConditions = [
-  { color_balance: "proposer_blue_receiver_orange", proposer_color: BLUE, receiver_color: ORANGE }
+  { color_balance: "proposer_orange_receiver_blue", proposer_color: ORANGE, receiver_color: BLUE }
 ];
 
 function buildConditionTable() {
@@ -621,7 +626,10 @@ function humanVerificationTrial(imagePath) {
 }
 
 function instructionFlowImagePath() {
-  return "instruction-flow_proposerblue.png";
+  const condition = assignedConditionInfo || conditionTable[0];
+  const proposerSide = condition.position_condition === "proposer_left" ? "left" : "right";
+  const proposerColor = condition.proposer_color === ORANGE ? "orange" : "blue";
+  return `instruction_flow_proposer_${proposerSide}_${proposerColor}.png`;
 }
 
 function instructionTrial() {
@@ -630,18 +638,19 @@ function instructionTrial() {
     return shellHtml(`
       <h2 class="intro-title">Instructions</h2>
       <p>In this study, you will complete a short economic decision-making task. Please read the instructions carefully. Your decision may affect bonus payments for you and another participant. You will receive a base payment of <span class="doc-red">$${BASE_PAYMENT_USD.toFixed(2)}</span> for completing the study carefully.</p>
-      <p>There are two roles in this task: <span class="doc-red">proposer</span> and <span class="doc-red">receiver</span>. The proposer decides how to divide <span class="doc-red">100 cents</span> between themself and a receiver. The receiver then decides whether to accept or reject the proposal.</p>
+      <p>There are two roles in this task: <span class="doc-red">proposer</span> and <span class="doc-red">receiver</span>. The proposer first decides how to divide <span class="doc-red">100 cents</span> between themself and a receiver. The receiver then decides whether to accept or reject the proposal.</p>
       <div class="instruction-flow-wrap">
         <img class="instruction-flow-image" src="${imagePath}" alt="Diagram showing the proposer decision, receiver decision, and possible outcomes.">
       </div>
       <p>You have been assigned to the role of <span class="doc-red">PROPOSER</span>.</p>
-      <p>You will make a decision by choosing one allocation of <span class="doc-red">100 cents</span> to send to the receiver. If your proposal is matched with a receiver selected for bonus payment:</p>
+      <p>A proposer database will be created from allocation decisions made by participants in this role. Proposals stored in this database will be available for presentation to receivers, who will decide whether to accept or reject each proposal.</p>
+      <p>You will decide how to divide <span class="doc-red">100 cents</span> between yourself and a receiver. If you are selected for bonus determination:</p>
       <ul>
         <li>If the receiver <span class="doc-red">accepts</span> your proposal, you and the receiver will receive the proposed amounts.</li>
         <li>If the receiver <span class="doc-red">rejects</span> your proposal, both you and the receiver will receive 0 cents from the proposal.</li>
       </ul>
       <p>You and the receiver will not know any personal information about each other.</p>
-      <p>After data collection is complete, <span class="doc-red">${BONUS_DRAW_PERCENT}%</span> of receivers will be randomly selected for real bonus payment. If your proposal is matched with a selected receiver, your decision will be paired with that receiver's response, and the outcome will determine the bonus for you and the receiver. The bonus will be paid as a Prolific bonus. Bonus payments will be processed within two months after data collection is complete.</p>
+      <p>After all receiver decisions have been collected, <span class="doc-red">${BONUS_DRAW_PERCENT}%</span> of receivers who complete the study will be randomly selected for <span class="doc-red">real bonus determination</span>. If you are matched with a receiver selected for bonus determination, your decision and the receiver's decision will determine the bonus for you and the matched receiver. Each proposer will be matched with at most one selected receiver. Any resulting bonus will be paid as a Prolific bonus within two months.</p>
       <p>Therefore, please consider your choice carefully, because your decision may affect a real bonus for both you and another participant.</p>
     `, STUDY_TITLE, "instruction-shell");
   };
@@ -661,7 +670,6 @@ function buildComprehensionQuestions() {
       text: "1. Which statement is correct about this study?",
       options: [
         { value: "receiver_real_proposal", label: "You will be the receiver and decide whether to accept or reject a real proposal." },
-        { value: "evaluation_only", label: "You will only answer evaluation questions; your decisions will not affect payment." },
         { value: "proposer_real_split", label: "You will be the proposer, choose one split of 100 cents, and your decision may be used to determine bonus payments for you and another participant." },
         { value: "proposer_not_real", label: "You will be the proposer, but your choice is not real and will not be recorded." }
       ],
@@ -691,7 +699,7 @@ function buildComprehensionQuestions() {
       name: "bonus",
       text: "4. How are bonus outcomes determined?",
       options: [
-        { value: "ten_percent_receivers_real", label: "10% of receivers are randomly selected. If selected, you and the receiver will both be paid according to the outcome of your decisions." },
+        { value: "ten_percent_receivers_real", label: "10% of receivers are randomly selected for bonus determination. If your decision is matched with a selected receiver, your proposal and that receiver's response determine the bonus for both of you." },
         { value: "everyone_bonus", label: "All the participants involving both receivers and proposer will be paid bonus." },
         { value: "hypothetical_only", label: "The game is hypothetical and no bonuses can be paid." }
       ],
@@ -860,6 +868,33 @@ function isExtremeSplit(split) {
   return split && (split.proposer === 0 || split.receiver === 0);
 }
 
+function isFairSplit(split) {
+  return split && split.proposer === 50 && split.receiver === 50;
+}
+
+function selectedSplitSource() {
+  if (forcedUnequalSplit && selectedSplit && selectedSplit.split_id === forcedUnequalSplit.split_id) {
+    return "forced_unequal_after_fair";
+  }
+  if (selectedSplit) {
+    return "initial_split";
+  }
+  return "";
+}
+
+function splitTrackingData() {
+  return {
+    initial_chosen_split_id: initialSelectedSplit ? initialSelectedSplit.split_id : "",
+    initial_proposer_cents: initialSelectedSplit ? initialSelectedSplit.proposer : "",
+    initial_receiver_cents: initialSelectedSplit ? initialSelectedSplit.receiver : "",
+    fair_initial_split_selected: isFairSplit(initialSelectedSplit) ? 1 : 0,
+    forced_unequal_split_id: forcedUnequalSplit ? forcedUnequalSplit.split_id : "",
+    forced_unequal_proposer_cents: forcedUnequalSplit ? forcedUnequalSplit.proposer : "",
+    forced_unequal_receiver_cents: forcedUnequalSplit ? forcedUnequalSplit.receiver : "",
+    selected_split_source: selectedSplitSource()
+  };
+}
+
 function splitDecisionTrial() {
   return {
     type: jsPsychHtmlKeyboardResponse,
@@ -938,6 +973,9 @@ function splitDecisionTrial() {
           return;
         }
         selectedSplit = splitOptions.find(option => option.split_id === currentSplitId);
+        initialSelectedSplit = selectedSplit;
+        forcedUnequalSplit = null;
+        selectedChartInfo = null;
         buttons.forEach(b => b.disabled = true);
         confirmButton.disabled = true;
         jsPsych.finishTrial({
@@ -946,10 +984,115 @@ function splitDecisionTrial() {
           proposer_cents: selectedSplit.proposer,
           receiver_cents: selectedSplit.receiver,
           extreme_split_selected: isExtremeSplit(selectedSplit) ? 1 : 0,
+          fair_split_selected: isFairSplit(selectedSplit) ? 1 : 0,
           first_split_choice: firstSplitId,
           split_choice_changed_count: choiceChangedCount,
           split_choice_history_json: JSON.stringify(choiceHistory),
-          split_decision_rt: Math.round(performance.now() - pageStart)
+          split_decision_rt: Math.round(performance.now() - pageStart),
+          ...splitTrackingData()
+        });
+      });
+    }
+  };
+}
+
+function forcedUnequalSplitTrial() {
+  return {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: shellHtml(`
+      <div class="stimulus-content exp3-split-content">
+        <div class="offer-title">Decision : Choose one <span class="doc-red">unequal</span> proposal.</div>
+        <div class="offer-subtitle">
+          <p>You selected an equal split in the previous decision. Because we are also interested in decisions involving <span class="doc-red">unequal</span> splits, you will now make a <span class="doc-red">second</span> proposal. All options below are unequal and give you more than the receiver. Please choose one option.</p>
+          <p><span class="doc-red">One</span> of your two proposals will be <span class="doc-red">randomly</span> selected for inclusion in the proposer database.</p>
+        </div>
+        <div class="split-option-list">
+          ${orderedProposerMoreSplitOptions.map(function (option) {
+            return `
+              <button class="decision-button split-decision-button" type="button" data-split-id="${option.split_id}" data-label="${option.label}">
+                ${splitChoiceButtonContent(option.label)}
+              </button>
+            `;
+          }).join("")}
+        </div>
+        <div id="decision-confirm-panel" class="decision-confirm-panel" hidden>
+          <div id="selected-choice-text" class="selected-choice-text"></div>
+          <div class="confirm-choice-wrap">
+            <div class="confirm-tooltip">Once confirmed, your decision cannot be changed.</div>
+            <button id="confirm-choice-button" class="confirm-choice-button" type="button">Confirm choice</button>
+          </div>
+        </div>
+      </div>
+    `, "Decision Stage", "stimulus-shell"),
+    choices: "NO_KEYS",
+    data: {
+      phase: "forced_unequal_split_decision",
+      split_order_condition: splitOrderCondition,
+      forced_unequal_option_order: orderedProposerMoreSplitOptions.map(option => option.split_id).join("|"),
+      forced_unequal_option_order_labels: orderedProposerMoreSplitOptions.map(option => option.label).join("|")
+    },
+    on_load: function () {
+      const pageStart = performance.now();
+      const buttons = Array.from(document.querySelectorAll(".split-decision-button"));
+      const confirmPanel = document.getElementById("decision-confirm-panel");
+      const selectedText = document.getElementById("selected-choice-text");
+      const confirmButton = document.getElementById("confirm-choice-button");
+      const choiceHistory = [];
+      let currentSplitId = null;
+      let firstSplitId = null;
+      let choiceChangedCount = 0;
+
+      buttons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          const clickRt = Math.round(performance.now() - pageStart);
+          const splitId = button.getAttribute("data-split-id");
+          const label = button.getAttribute("data-label");
+          if (!firstSplitId) {
+            firstSplitId = splitId;
+          } else if (splitId !== currentSplitId) {
+            choiceChangedCount += 1;
+          }
+          currentSplitId = splitId;
+          choiceHistory.push({ split_id: splitId, rt: clickRt });
+          const currentSplit = splitOptions.find(option => option.split_id === currentSplitId);
+          buttons.forEach(function (b) {
+            b.classList.remove("selected");
+            b.innerHTML = splitChoiceButtonContent(b.getAttribute("data-label"));
+          });
+          button.classList.add("selected");
+          button.innerHTML = splitChoiceButtonContent(label, true);
+          selectedText.innerHTML = isExtremeSplit(currentSplit)
+            ? `You selected: <strong>${label}</strong>.<div class="extreme-split-warning">This split gives one participant 0 cents, so the visual display step cannot be shown for this proposal. Please consider whether a non-extreme split better reflects your decision. You may still confirm this choice if you are sure.</div>`
+            : `You selected: <strong>${label}</strong>.`;
+          confirmPanel.hidden = false;
+          confirmPanel.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        });
+      });
+
+      confirmButton.addEventListener("click", function () {
+        if (!currentSplitId) {
+          return;
+        }
+        forcedUnequalSplit = splitOptions.find(option => option.split_id === currentSplitId);
+        selectedSplit = forcedUnequalSplit;
+        selectedChartInfo = null;
+        buttons.forEach(b => b.disabled = true);
+        confirmButton.disabled = true;
+        jsPsych.finishTrial({
+          chosen_split_id: selectedSplit.split_id,
+          chosen_split_label: selectedSplit.label,
+          proposer_cents: selectedSplit.proposer,
+          receiver_cents: selectedSplit.receiver,
+          extreme_split_selected: isExtremeSplit(selectedSplit) ? 1 : 0,
+          forced_unequal_split_id: selectedSplit.split_id,
+          forced_unequal_split_label: selectedSplit.label,
+          forced_unequal_proposer_cents: selectedSplit.proposer,
+          forced_unequal_receiver_cents: selectedSplit.receiver,
+          first_forced_unequal_choice: firstSplitId,
+          forced_unequal_choice_changed_count: choiceChangedCount,
+          forced_unequal_choice_history_json: JSON.stringify(choiceHistory),
+          forced_unequal_decision_rt: Math.round(performance.now() - pageStart),
+          ...splitTrackingData()
         });
       });
     }
@@ -975,13 +1118,17 @@ function chartDecisionTrial() {
     const split = selectedSplit || splitOptions[0];
     const order = condition.chart_order.split("|");
     const chartLetters = ["A", "B", "C"];
+    const forcedUnequalDisplayNote = forcedUnequalSplit
+      ? `<p>The <span class="doc-red">unequal</span> proposal you choose before will also be used in this display-format decision. If this unequal proposal is selected for inclusion in the proposer database, it will be shown in the display format you choose below.</p>`
+      : "";
     return shellHtml(`
       <div class="stimulus-content exp3-chart-content">
         <div class="offer-title">Decision : Choose one way of presenting the allocation.</div>
         <div class="offer-subtitle">
-          Now please <span class="doc-red">choose one way of presenting the allocation to the receiver</span>.
+          ${forcedUnequalDisplayNote}
+          <p>Now please <span class="doc-red">choose one way of presenting the allocation to the receiver</span>.
           The receiver will see the selected presentation with the numerical amounts shown.
-          You can submit this decision <span class="doc-red">only once</span>.
+          You can submit this decision <span class="doc-red">only once</span>.</p>
         </div>
         <div class="selected-split-summary">Selected proposal: ${split.label}</div>
         <div class="chart-choice-grid">
@@ -1023,7 +1170,8 @@ function chartDecisionTrial() {
         chart_order_index: condition.chart_order_index,
         chart_order: condition.chart_order,
         color_balance: condition.color_balance,
-        position_condition: condition.position_condition
+        position_condition: condition.position_condition,
+        ...splitTrackingData()
       };
     },
     on_load: function () {
@@ -1109,7 +1257,7 @@ function postScaleTrial(questions, pageNumber) {
     type: jsPsychHtmlKeyboardResponse,
     stimulus: shellHtml(`
       <form id="post-form" novalidate>
-        <h2 class="intro-title">Follow-up Questions</h2>
+        <h2 class="intro-title">Task Questions</h2>
         <p class="muted post-instruction">There are no right or wrong answers. Please answer based on how you feel.</p>
         ${questions.map(q => scaleQuestionHtml(q.name, q.text, q.left, q.right)).join("")}
         <button type="submit" class="form-submit">Continue</button>
@@ -1121,7 +1269,8 @@ function postScaleTrial(questions, pageNumber) {
       phase: `post_questionnaire_page_${pageNumber}`,
       chosen_split_id: selectedSplit ? selectedSplit.split_id : "",
       extreme_split_selected: isExtremeSplit(selectedSplit) ? 1 : 0,
-      selected_chart_type: selectedChartInfo ? selectedChartInfo.selected_chart_type : ""
+      selected_chart_type: selectedChartInfo ? selectedChartInfo.selected_chart_type : "",
+      ...splitTrackingData()
     },
     on_load: function () {
       const pageStart = performance.now();
@@ -1153,6 +1302,7 @@ function postScaleTrial(questions, pageNumber) {
           extreme_split_selected: isExtremeSplit(selectedSplit) ? 1 : 0,
           selected_chart_label: selectedChartInfo ? selectedChartInfo.selected_chart_label : "",
           selected_chart_type: selectedChartInfo ? selectedChartInfo.selected_chart_type : "",
+          ...splitTrackingData(),
           [`post_page${pageNumber}_rt`]: pageRt,
           [`post_page${pageNumber}_rt_json`]: JSON.stringify(questionRt)
         };
@@ -1172,11 +1322,10 @@ function hasSelectedDisplayFormat() {
 function postReasonTrial() {
   const options = [
     { value: "accurate", label: "It represented the split most accurately." },
-    { value: "receiver_larger", label: "It made the receiver's amount look larger." },
-    { value: "receiver_stand_out", label: "It made the receiver's amount stand out more." },
-    { value: "fairer", label: "It made the proposal look fairer." },
-    { value: "acceptance", label: "It made the proposal more likely to be accepted." },
-    { value: "clear_appealing", label: "It looked clearer or more visually appealing." },
+    { value: "receiver_larger_accept", label: "It made the receiver's amount appear larger and the proposal easier to accept." },
+    { value: "receiver_stand_out", label: "It made the receiver's amount more noticeable or stand out more." },
+    { value: "difference_smaller", label: "It made the split look less uneven." },
+    { value: "visual_appeal", label: "It looked more visually appealing." },
     { value: "random", label: "I chose randomly / I had no particular reason." },
     { value: "other", label: "Other:" }
   ];
@@ -1184,9 +1333,9 @@ function postReasonTrial() {
     type: jsPsychHtmlKeyboardResponse,
     stimulus: shellHtml(`
       <form id="post-reason-form" novalidate>
-        <h2 class="intro-title">Follow-up Questions</h2>
+        <h2 class="intro-title">Task Questions</h2>
         <div class="form-question">
-          <div class="question-text">What was the main reason you chose this display format?</div>
+          <div class="question-text">Which of the following best describes your main consideration when choosing the display format?</div>
           <div class="single-choice-list" role="radiogroup" aria-label="Display format choice reason">
             ${options.map(function (option) {
               if (option.value === "other") {
@@ -1222,7 +1371,8 @@ function postReasonTrial() {
     data: {
       phase: "post_questionnaire_page_4",
       chosen_split_id: selectedSplit ? selectedSplit.split_id : "",
-      selected_chart_type: selectedChartInfo ? selectedChartInfo.selected_chart_type : ""
+      selected_chart_type: selectedChartInfo ? selectedChartInfo.selected_chart_type : "",
+      ...splitTrackingData()
     },
     on_start: function () {
       plannedFullscreenExit = true;
@@ -1279,6 +1429,7 @@ function postReasonTrial() {
           receiver_cents: selectedSplit ? selectedSplit.receiver : "",
           selected_chart_label: selectedChartInfo ? selectedChartInfo.selected_chart_label : "",
           selected_chart_type: selectedChartInfo ? selectedChartInfo.selected_chart_type : "",
+          ...splitTrackingData(),
           chart_choice_reason: reason,
           chart_choice_reason_other: otherText,
           study_issue_comment: (response.study_issue_comment || "").trim(),
@@ -1295,7 +1446,7 @@ function postOpenEndedTrial() {
     type: jsPsychHtmlKeyboardResponse,
     stimulus: shellHtml(`
       <form id="post-open-form" novalidate>
-        <h2 class="intro-title">Follow-up Questions</h2>
+        <h2 class="intro-title">Task Questions</h2>
         <div class="form-question">
           <label class="question-text post-open-question" for="study-issue-comment">Was anything unclear, confusing, or unexpected in this task?</label>
           <p>You may leave this blank if everything was clear.</p>
@@ -1308,7 +1459,8 @@ function postOpenEndedTrial() {
     data: {
       phase: "post_questionnaire_page_4",
       chosen_split_id: selectedSplit ? selectedSplit.split_id : "",
-      selected_chart_type: selectedChartInfo ? selectedChartInfo.selected_chart_type : ""
+      selected_chart_type: selectedChartInfo ? selectedChartInfo.selected_chart_type : "",
+      ...splitTrackingData()
     },
     on_start: function () {
       plannedFullscreenExit = true;
@@ -1331,6 +1483,7 @@ function postOpenEndedTrial() {
           extreme_split_selected: isExtremeSplit(selectedSplit) ? 1 : 0,
           selected_chart_label: selectedChartInfo ? selectedChartInfo.selected_chart_label : "",
           selected_chart_type: selectedChartInfo ? selectedChartInfo.selected_chart_type : "",
+          ...splitTrackingData(),
           study_issue_comment: response.study_issue_comment.trim(),
           post_page4_rt: Math.round(performance.now() - pageStart)
         });
@@ -1349,30 +1502,30 @@ function postQuestionnaireTrials() {
         right: "7 = Very fair"
       },
       {
-        name: "split_maximize_own_payoff_7",
-        text: "To what extent did you choose this split to maximize your own payoff?",
-        left: "1 = Not at all",
-        right: "7 = Very much"
-      },
-      {
-        name: "split_make_receiver_accept_7",
-        text: "To what extent did you choose this split because you thought the receiver would accept it?",
-        left: "1 = Not at all",
-        right: "7 = Very much"
+        name: "receiver_amount_size_7",
+        text: "How large did you consider the amount you allocated to the receiver to be?",
+        left: "1 = Very small",
+        right: "7 = Very large"
       }
     ], 1),
     postScaleTrial([
       {
+        name: "receiver_perceived_fairness_chart_7",
+        text: "How fair do you think <strong>the receiver</strong> would perceive your proposal to be as presented?",
+        left: "1 = Very unfair",
+        right: "7 = Very fair"
+      },
+      {
         name: "receiver_accept_likelihood_chart_7",
-        text: "How likely do you think the <strong>receiver</strong> would be to accept your proposal as presented?",
+        text: "How likely do you think <strong>the receiver</strong> would be to accept your proposal as presented?",
         left: "1 = Very unlikely",
         right: "7 = Very likely"
       },
       {
-        name: "receiver_perceived_fairness_chart_7",
-        text: "How fair do you think the <strong>receiver</strong> would perceive your proposal to be as presented?",
-        left: "1 = Very unfair",
-        right: "7 = Very fair"
+        name: "receiver_anger_chart_7",
+        text: "How angry do you think <strong>the receiver</strong> would feel about your proposal as presented?",
+        left: "1 = Not angry at all",
+        right: "7 = Extremely angry"
       }
     ], 2),
     {
@@ -1424,6 +1577,12 @@ function exp3TaskTrials() {
     stageMessageTrial(),
     splitDecisionTrial(),
     recordedBlankTrial(),
+    {
+      timeline: [forcedUnequalSplitTrial()],
+      conditional_function: function () {
+        return selectedSplit && isFairSplit(selectedSplit);
+      }
+    },
     {
       timeline: [chartDecisionTrial()],
       conditional_function: function () {
@@ -1525,7 +1684,13 @@ async function buildAndRunExperiment() {
 
   timeline.push({
     type: jsPsychPreload,
-    images: ["ModifiedMullerLyer.png", "instruction-flow_proposerblue.png"],
+    images: [
+      "ModifiedMullerLyer.png",
+      "instruction_flow_proposer_left_blue.png",
+      "instruction_flow_proposer_right_blue.png",
+      "instruction_flow_proposer_left_orange.png",
+      "instruction_flow_proposer_right_orange.png"
+    ],
     continue_after_error: true,
     data: { phase: "preload" }
   });
